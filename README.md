@@ -5,8 +5,8 @@ Insight Data Engineering project, Seattle 2019C session
 How can we transfer the contents of a large database from one format to another with minimal downtime, while allowing additions and updates to the original database? I'll present a method to do this and to validate that the final information is the same between the databases.
 
 ## Tech Stack
-Two database formats:  
-Transfer tool:
+Two database formats: PostgreSQL, ?  
+Transfer tool: Airflow, Presto?
 
 ## Data Source
 Example: Amazon customer reviews  
