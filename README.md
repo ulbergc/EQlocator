@@ -8,7 +8,7 @@ Specific business case to transfer from non-relational to relational database?
 
 ## Tech Stack
 Two database formats: MongoDB, MySQL  
-Transfer tool: Presto, Hive, Pig?
+Transfer tool: Presto, Hive, Pig?  
 Monitor tool: Airflow
 
 ## Data Source
