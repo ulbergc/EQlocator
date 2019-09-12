@@ -4,9 +4,12 @@ Insight Data Engineering project, Seattle 2019C session
 ## Project Idea/Business Value
 How can we transfer the contents of a large database from one format to another with minimal downtime, while allowing additions and updates to the original database? I'll present a method to do this and to validate that the final information is the same between the databases.
 
+Specific business case to transfer from non-relational to relational database?
+
 ## Tech Stack
-Two database formats: PostgreSQL, ?  
-Transfer tool: Airflow, Presto?
+Two database formats: MongoDB, MySQL  
+Transfer tool: Presto, Hive, Pig?
+Monitor tool: Airflow
 
 ## Data Source
 Example: Amazon customer reviews  
