@@ -22,6 +22,7 @@ How do we verify the databases contain the same information?
 Load data into initial database  
 Transfer into a second database without allowing changes
 - This will be a benchmark for the amount of time and resources to allow a simple transfer if the database is closed during transfer  
+
 Set up process to change initial database during transfer  
 Create processes to: (1) apply updates to both databases; (2) verify databases have the same data
 
