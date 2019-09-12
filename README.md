@@ -29,4 +29,5 @@ How do we verify the databases contain the same information?
 - Create processes to: (1) apply updates to both databases; (2) verify databases have the same data
 
 ## Stretch Goals
-Provide functionality for multiple database formats
+Provide functionality for multiple database formats  
+Improve speed without compromising functionality (or at least quantify the tradeoff)
