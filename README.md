@@ -6,7 +6,8 @@ Carl Ulberg
 ## Project Idea/Business Value
 Companies often need to upgrade or change their data storage capabilities. Taking a database offline to do this can cost money by wasting time of internal users or potentially losing external users. At Insight, I have developed a framework for quickly migrating a live database between different formats while ensuring consistency between them. 
 
-Specific business case to transfer from non-relational to relational database?
+Needed: Specific business case to transfer from non-relational to relational database?  
+Example: Coursera did this in ~2012 (from MongoDB to MySQL) because they wanted more rigid schema
 
 ## Tech Stack
 Two database formats: MongoDB, MySQL  
