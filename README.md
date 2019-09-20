@@ -8,8 +8,10 @@ Specific business case to transfer from non-relational to relational database?
 
 ## Tech Stack
 Two database formats: MongoDB, MySQL  
-Transfer tool: Spark (batch), Kafka (realtime)
+Transfer tool: Spark (batch), Kafka (realtime)  
 Monitor tool: Airflow (to check consistency)
+
+![Tech stack image](https://github.com/ulbergc/DBtransfer/blob/master/img/TechStack1.png)
 
 ## Data Source
 Example: Amazon customer reviews  
