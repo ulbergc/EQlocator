@@ -24,7 +24,7 @@ Allow realtime updates and additions to the original database while transfer is 
 
 ## Engineering Challenge  
 - How do we make sure that an update to a record that has already been transferred is applied to the new database as well?  
-  - Kafka should be able to do this. The changes that stream through Kafka are idempotent, so accidentally applying a change twice wouldn't matter
+  - Kafka should be able to do this. In addition, the changes that stream through Kafka are idempotent, so accidentally applying a change twice wouldn't matter
   - Timestamps matter, don't want to apply changes in the wrong order
     - Solution: send changes to the same table/collection to the same topic?  
 - What happens if an update occurs _before_ the batch process?  
