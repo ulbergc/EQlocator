@@ -1,5 +1,6 @@
 # DBtransfer
-Insight Data Engineering project, Seattle 2019C session
+Insight Data Engineering project, Seattle 2019C session  
+Carl Ulberg
 
 ## Project Idea/Business Value
 Companies often need to upgrade or change their data storage capabilities. Taking a database offline to do this can cost money by wasting time of internal users or potentially losing external users. At Insight, I have developed a framework for quickly migrating a live database between different formats while ensuring consistency between them. 
