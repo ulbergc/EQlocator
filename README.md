@@ -2,14 +2,14 @@
 Insight Data Engineering project, Seattle 2019C session
 
 ## Project Idea/Business Value
-How can we transfer the contents of a large database from one format to another with minimal downtime, while allowing additions and updates to the original database? I'll present a method to do this and to validate that the final information is the same between the databases.
+Companies often need to upgrade or change their data storage capabilities. Taking a database offline to do this can cost money by wasting time of internal users or potentially losing external users. At Insight, I have developed a framework for quickly migrating a live database between different formats while ensuring consistency between them. 
 
 Specific business case to transfer from non-relational to relational database?
 
 ## Tech Stack
 Two database formats: MongoDB, MySQL  
-Transfer tool: Presto, Hive, Pig?  
-Monitor tool: Airflow
+Transfer tool: Spark (batch), Kafka (realtime)
+Monitor tool: Airflow (to check consistency)
 
 ## Data Source
 Example: Amazon customer reviews  
@@ -22,9 +22,12 @@ How do we make sure that an update to a record that has already been transferred
 How do we verify the databases contain the same information?
 
 ## MVP
-- Load data into initial database  
+- Load data into initial database (done)  
 - Transfer into a second database without allowing changes
   - This will be a benchmark for the amount of time and resources to allow a simple transfer if the database is closed during transfer
+  - Set up second database (done)
+  - Spark cluster set up and reading information from first database (done)
+  - Spark cluster writes information to second database
 - Set up process to change initial database during transfer  
 - Create processes to: (1) apply updates to both databases; (2) verify databases have the same data
 
