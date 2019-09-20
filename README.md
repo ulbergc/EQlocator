@@ -23,14 +23,13 @@ https://s3.amazonaws.com/amazon-reviews-pds/readme.html
 Allow realtime updates and additions to the original database while transfer is occuring (simulate this behavior by holding back some records from the original database)
 
 ## Engineering Challenge  
-How do we make sure that an update to a record that has already been transferred is applied to the new database as well?  
-- Kafka should be able to do this. The changes that stream through Kafka are idempotent, so accidentally applying a change twice wouldn't matter
-- Timestamps matter, don't want to apply changes in the wrong order
-  - Solution: send changes to the same table/collection to the same topic?  
-  
-What happens if an update occurs _before_ the batch process?  
-How do we verify the databases contain the same information?
-- Airflow process to check table size?
+- How do we make sure that an update to a record that has already been transferred is applied to the new database as well?  
+  - Kafka should be able to do this. The changes that stream through Kafka are idempotent, so accidentally applying a change twice wouldn't matter
+  - Timestamps matter, don't want to apply changes in the wrong order
+    - Solution: send changes to the same table/collection to the same topic?  
+- What happens if an update occurs _before_ the batch process?  
+- How do we verify the databases contain the same information?
+  - Airflow process to check table size?
 
 ## MVP
 - Load data into initial database (done)  
