@@ -20,7 +20,7 @@ def write_data(df):
 
     data_to_write=df.select("_id","name")
     
-    mysqlhost="10.0.0.4:3306/"
+    mysqlhost="10.0.0.14:3306/"
     mysqldb="tmp"
     data_to_write.write.format("jdbc").options(
         url=("jdbc:mysql://" + mysqlhost + mysqldb),
