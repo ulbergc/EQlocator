@@ -22,8 +22,9 @@ def write_data(df):
     
     mysqlhost="10.0.0.14:3306/"
     mysqldb="tmp"
+    mysqluserpw="?user=user2&password=pw"
     data_to_write.write.format("jdbc").options(
-        url=("jdbc:mysql://" + mysqlhost + mysqldb),
+        url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
         driver="com.mysql.jdbc.Driver",
         dbtable="test1").save()
 
