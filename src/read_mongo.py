@@ -18,7 +18,7 @@ def write_data(df):
 #        user='your_user_name',
 #        password='your_password').mode('append').save()
 
-    data_to_write=df.select("id","name")
+    data_to_write=df.select("_id","name")
     
     mysqlhost="10.0.0.4:3306/"
     mysqldb="tmp"
