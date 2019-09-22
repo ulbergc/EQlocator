@@ -14,8 +14,8 @@ if __name__ == "__main__":
     spark = SparkSession \
         .builder \
         .appName("MigrateData") \
-        .master("spark://" + master_DNS + ":7077")
-        .config("spark.mongodb.input.uri","mongodb://10.0.0.4/dbsmall.movie")
+        .master("spark://" + master_DNS + ":7077") \
+        .config("spark.mongodb.input.uri","mongodb://10.0.0.4/dbsmall.movie") \
         .getOrCreate()
 
     read_data(spark)
