@@ -15,7 +15,7 @@ if __name__ == "__main__":
         .builder \
         .appName("MigrateData") \
         .config("spark.mongodb.input.uri","mongodb://10.0.0.4/dbsmall.movie") \
-        .config("spark.jars.packages","org.mongodb.spark:mongo-spark-connector_2.11:2.4.1")
+        .config("spark.jars.packages","org.mongodb.spark:mongo-spark-connector_2.11:2.4.1") \
         .getOrCreate()
     
     
