@@ -10,11 +10,11 @@ def read_data(spark):
 
 
 if __name__ == "__main__":
-    master_DNS="http://ec2-34-223-143-198.us-west-2.compute.amazonaws.com"
+#    master_DNS="http://ec2-34-223-143-198.us-west-2.compute.amazonaws.com"
     spark = SparkSession \
         .builder \
         .appName("MigrateData") \
-        .master("spark://" + master_DNS + ":7077") \
+#        .master("spark://" + master_DNS + ":7077") \
         .config("spark.mongodb.input.uri","mongodb://10.0.0.4/dbsmall.movie") \
         .getOrCreate()
 
