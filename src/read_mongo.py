@@ -7,6 +7,27 @@ def read_data(spark):
         .format("mongo") \
         .load()
     df.printSchema()
+    return df
+
+
+def write_data(df):
+#    df.write.format('jdbc').options(
+#        url='jdbc:mysql://localhost/database_name',
+#        driver='com.mysql.jdbc.Driver',
+#        dbtable='DestinationTableName',
+#        user='your_user_name',
+#        password='your_password').mode('append').save()
+
+    data_to_write=df.select("id","name")
+    
+    mysqlhost="10.0.0.4:3306/"
+    mysqldb="tmp"
+    data_to_write.write.format("jdbc").options(
+        url=("jdbc:mysql://" + mysqlhost + mysqldb),
+        driver="com.mysql.jdbc.Driver",
+        dbtable="test1").save()
+
+    # could add .mode("append") before save to append, otherwise creates new
 
 
 if __name__ == "__main__":
@@ -21,6 +42,13 @@ if __name__ == "__main__":
     
     #        .master("spark://" + master_DNS + ":7077") \
 
-    read_data(spark)
+    # read data from MongoDB
+    df=read_data(spark)
+
+    # Create table, headers for MySQL
+
+
+    # Write data to MySQL
+    write_data(df)
 
     spark.stop()
