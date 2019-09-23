@@ -25,7 +25,7 @@ def write_data(df):
     mysqluserpw="?user=user2&password=pw"
     data_to_write.write.format("jdbc").options(
         url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
-        driver="com.mysql.jdbc.Driver",
+        driver="com.mysql.cj.jdbc.Driver",
         dbtable="test1").save()
 
     # could add .mode("append") before save to append, otherwise creates new
