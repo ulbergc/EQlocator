@@ -19,7 +19,7 @@ def write_data(df):
 #        password='your_password').mode('append').save()
 
 #    data_to_write=df.select("_id","name")
-    data_to_write=df.select("name","format")
+    data_to_write=df.select("value","extra")
     data_to_write.show()
     
     mysqlhost="10.0.0.14:3306/"
@@ -28,7 +28,7 @@ def write_data(df):
     data_to_write.write.format("jdbc").options(
         url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
         driver="com.mysql.cj.jdbc.Driver",
-        dbtable="test3").save()
+        dbtable="testRepl1").save()
 
     # could add .mode("append") before save to append, otherwise creates new
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     spark = SparkSession \
         .builder \
         .appName("MigrateData") \
-        .config("spark.mongodb.input.uri","mongodb://10.0.0.4/dbsmall.movie") \
+        .config("spark.mongodb.input.uri","mongodb://10.0.0.5/db0.foo") \
         .config("spark.jars.packages","org.mongodb.spark:mongo-spark-connector_2.11:2.4.1") \
         .getOrCreate()
     
