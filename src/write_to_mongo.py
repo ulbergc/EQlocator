@@ -4,8 +4,9 @@ import re
 import json
 import glob
 import time
+import sys
 
-def parseFileToJson(filepath):
+def parseFileToJson(filepath,incr):
     # read in file
     with open(filepath) as f:
         content = f.readlines()
@@ -50,8 +51,17 @@ def parseFileToJson(filepath):
             pickfile['RefTime']=str(reftime)
             pickfile['Latitude']=float(eqlat)
             pickfile['Longitude']=float(eqlon)
-            pickfile['Depth']=float(eqdep)
-            pickfile['Magnitude']=float(eqmag)
+            try:
+                pickfile['Depth']=float(eqdep)
+            except:
+                #print("Issue with depth: " + line)
+                #pickfile['Depth']=eqdep
+                pickfile['Depth']=float(0.0)
+            try:
+                pickfile['Magnitude']=float(eqmag)
+            except:
+                #pickfile['Magnitude']=eqmag
+                pickfile['Magnitude']=float(0.0)
             pickfile['N_sta']=int(nsta)
             pickfile['N_phase']=int(npha)
         elif first == '.':
@@ -90,15 +100,25 @@ def parseFileToJson(filepath):
                     tmpdict['First_motion']=first_motion
                     tmpdict['Arrival_time']=reftime0 + arrival_time
                     tmpdict['Pick_quality']=int(pick_quality)
-                    tmpdict['Uncertainty']=float(uncertainty)
-                    tmpdict['Residual']=float(residual)
-                    
+                    try:
+                        tmpdict['Uncertainty']=float(uncertainty)
+                    except:
+                        #print("Issue with uncertainty: " + line)
+                        #tmpdict['Uncertainty']=uncertainty
+                        tmpdict['Uncertainty']=float(0.3)
+                    try:
+                        tmpdict['Residual']=float(residual)
+                    except:
+                        #print("Issue with residual: " + line)
+                        #tmpdict['Residual']=residual
+                        tmpdict['Residual']=float(0.5)
                     pickfile['Observations'].append(tmpdict)
         elif first == 'C':
             words=line.split()
             if len(words)==4 and words[1]=='EVENT':
                 # this should be the eventid
-                pickfile['Event_id']=words[3]
+                ONE_MILLION=1000000
+                pickfile['_id']=int(words[3])+incr*ONE_MILLION*100
 
     #return json.dumps(pickfile)
     return pickfile
@@ -107,6 +127,11 @@ def parseFileToJson(filepath):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: write_to_mongo.py <dbname> <incr>")
+        sys.exit(-1)
+
+
     filedir='/data/raw'
 #    filename='99123101280c'
 
@@ -116,29 +141,27 @@ if __name__ == "__main__":
     files=glob.glob(filedir + '/*')
     cnt=0
     for filepath in files:
-        #print(filepath)
-
-#    filepath=filedir + '/' + filename
-    
-    #doc_array=[]
-        doc_dict=parseFileToJson(filepath)
+        doc_dict=parseFileToJson(filepath,int(sys.argv[2]))
         doc_array.append(doc_dict)
-        if cnt>=20:
-            break
-        cnt+=1
+#        if cnt>=20:
+#            break
+#        cnt+=1
 
     endParse=time.time()
-    print("Time to parse: {}".format(endParse - start))
+#    print("Time to parse: {}".format(endParse - start))
+    
+    dbname=sys.argv[1]
+#    print("DB=" + dbname)
 
     client = MongoClient('localhost', 27017)
-    db = client.tmp4
+    db = client.large2
     collection_name = db.c0
     #collection_name.insert_one(json_string)
     collection_name.insert_many(doc_array)
     client.close()
    
     endUpload=time.time()
-    print("Time to upload: {}".format(endUpload - endParse))
+#    print("Time to upload: {}".format(endUpload - endParse))
     
 #    writeToMongo(json_string)
     #print(json_string)
