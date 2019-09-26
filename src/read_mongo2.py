@@ -21,7 +21,7 @@ def write_data(df):
 #        user='your_user_name',
 #        password='your_password').mode('append').save()
 
-#    data_to_write=df.select("_id","name")
+    #data_to_write=df.select("_id","Latitude","Longitude")
    # data_to_write=df.select("value","extra")
     data_to_write=df
     #data_to_write.show()
@@ -29,7 +29,7 @@ def write_data(df):
 
     # check that database is created and table is not
     mysqlhost="10.0.0.11:3306/"
-    mysqldb="tmp"
+    mysqldb="large2"
     mysqluserpw="?user=user&password=pw"
     data_to_write.write.format("jdbc").options(
         url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
@@ -63,7 +63,7 @@ def locateEQ(x,boundingBox):
 
 if __name__ == "__main__":
 #    master_DNS="ec2-34-223-143-198.us-west-2.compute.amazonaws.com"
-    dbname="large0" # small-tmp1; large-tmp0
+    dbname="large2" # small-tmp1; large-tmp0
     collname="c0" # small-c0; large-c0
     spark = SparkSession \
         .builder \
@@ -98,9 +98,11 @@ if __name__ == "__main__":
     #df.foreach(lambda x: locateEQ(x,'fe'))
     
     # use map because it will return a transformed rdd
-    d_rdd=df.rdd.map(lambda x: locateEQ(x,[lat_min,lat_max,lon_min,lon_max]))
+#    d_rdd=df.rdd.map(lambda x: locateEQ(x,[lat_min,lat_max,lon_min,lon_max]))
     #print(d_rdd.count())
 
+    # drop this from memory, don't need it
+#    df.unpersist()
     # create schema for transformed rdd
     fields = [StructField("Event_id", IntegerType(), True), 
             StructField("Latitude", FloatType(), True),
@@ -108,15 +110,15 @@ if __name__ == "__main__":
     sql_schema = StructType(fields)
 
     #d_rdd_with_schema = sqlContext.applySchema(d_rdd,sql_schema)
-    df_out=spark.createDataFrame(d_rdd,sql_schema)
+#    df_out=spark.createDataFrame(d_rdd,sql_schema)
     #df_out=spark.createDataFrame(d_rdd)
 
-    df_out.printSchema()
-
+#    df_out.printSchema()
+    df_out=df.select("_id","Latitude","Longitude")
     #print(d_rdd.first()[0])
     ##df2.printSchema()
     # Create table, headers for MySQL
-    nevent=df_out.count()
+#    nevent=df_out.count()
     print("{} stations".format(sta.count()))
     #print("Sta box: [{} {} {} {}]".format(
 #    sta.describe(['Latitude']).show()
@@ -128,6 +130,6 @@ if __name__ == "__main__":
     endtime=time.time()
     print("It took {:.1f} seconds".format(endtime-starttime))
 
-    f=open("../logs/sparklog2.log","a+")
-    f.write("{:.1f} sec | {} records\n".format(endtime-starttime,nevent))
-    f.close()
+#    f=open("../logs/sparklog2.log","a+")
+#    f.write("{:.1f} sec | {} records\n".format(endtime-starttime,nevent))
+#    f.close()

@@ -17,7 +17,8 @@ echo "Calling spark-submit $PACKAGE $MASTER $1"
 
 spark-submit $PACKAGE $MASTER $1
 
+endtimeFull=`date`
 endtime=`date +%s`
 runtime=$((endtime-starttime))
-
-echo "$runtime | spark-submit $PACKAGE $MASTER $1" >> ../logs/sparktime.log
+echo "Testing"
+echo "$endtimeFull | $runtime | spark-submit $PACKAGE $MASTER $1" >> ../logs/sparktime.log

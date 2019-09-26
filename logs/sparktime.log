@@ -26,3 +26,10 @@
 47 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
 50 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
 57 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+456 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+446 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+486 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+63 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+ | 63 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+ | 63 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
+ | 453 | spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17 --master spark://10.0.0.13:7077 read_mongo2.py
