@@ -5,6 +5,7 @@ if [ $narg -lt 1 ]; then
   exit
 fi
 
+starttime=`date +%s`
 PACKAGE=$(echo "--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.1,mysql:mysql-connector-java:8.0.17")
 
 masterDNS=10.0.0.13
@@ -15,3 +16,8 @@ echo $MASTER
 echo "Calling spark-submit $PACKAGE $MASTER $1"
 
 spark-submit $PACKAGE $MASTER $1
+
+endtime=`date +%s`
+runtime=$((endtime-starttime))
+
+echo "$runtime | spark-submit $PACKAGE $MASTER $1" >> ../logs/sparktime.log

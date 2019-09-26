@@ -1,8 +1,4 @@
 from pyspark.sql import SQLContext
-#from pyspark.sql import StructField 
-#from pyspark.sql import StringType 
-#from pyspark.sql import StructType
-#from pyspark.sql import FloatType
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
@@ -14,8 +10,6 @@ def read_data(spark):
         .load()
     df.printSchema()
 
-#    docs=df.collect()
-    
     return df
 
 
@@ -32,26 +26,44 @@ def write_data(df):
     data_to_write=df
     #data_to_write.show()
     
+
+    # check that database is created and table is not
     mysqlhost="10.0.0.11:3306/"
     mysqldb="tmp"
     mysqluserpw="?user=user&password=pw"
-#    data_to_write.write.format("jdbc").options(
-#        url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
-#        driver="com.mysql.cj.jdbc.Driver",
-#        dbtable="table1").save()
+    data_to_write.write.format("jdbc").options(
+        url=("jdbc:mysql://" + mysqlhost + mysqldb + mysqluserpw),
+        driver="com.mysql.cj.jdbc.Driver",
+        dbtable="table1").save()
 
     # could add .mode("append") before save to append, otherwise creates new
 
 def locateEQ(x,boundingBox):
-    print("Processing event {evid}, {nobs} observations".format(evid=x.Event_id,nobs=len(x.Observations)))
+    print("Processing event {evid}, {nobs} observations".format(evid=x._id,nobs=len(x.Observations)))
     #print(type(x))
+    idtmp=x._id
+    lattmp=float(x.Latitude)
+    lontmp=float(x.Longitude)
+#    if len(str(lattmp))<3:
+#	print("*******ev {}, lat='''{}'''".format(x._id,lattmp))
+#	lattmp=46.2
+#    if len(str(lontmp))<3:
+#	lontmp=-121.6
+#        print("*******ev {}, lon='''{}'''".format(x._id,lontmp))
+#    f=open("../logs/sparklogtmp.log","a")
+#    f.write("{} {} {}\n".format(x._id,lattmp,lontmp))
+#    f.close()
     #print(x)
     #print((float(x.Latitude) + float(x.Longitude))/2)
-    return (x.Event_id,x.Latitude,x.Longitude)
+    #return (x._id,float(x.Latitude),float(x.Longitude))
+#    idtmp=100
+#    lattmp=46.5
+#    lontmp=-122
+    return (idtmp,lattmp,lontmp)
 
 if __name__ == "__main__":
 #    master_DNS="ec2-34-223-143-198.us-west-2.compute.amazonaws.com"
-    dbname="tmp3" # small-tmp1; large-tmp0
+    dbname="large0" # small-tmp1; large-tmp0
     collname="c0" # small-c0; large-c0
     spark = SparkSession \
         .builder \
@@ -87,23 +99,24 @@ if __name__ == "__main__":
     
     # use map because it will return a transformed rdd
     d_rdd=df.rdd.map(lambda x: locateEQ(x,[lat_min,lat_max,lon_min,lon_max]))
-    print(d_rdd.count())
+    #print(d_rdd.count())
 
     # create schema for transformed rdd
-    fields = [StructField("Event_id", StringType(), True), 
+    fields = [StructField("Event_id", IntegerType(), True), 
             StructField("Latitude", FloatType(), True),
             StructField("Longitude", FloatType(), True)]
     sql_schema = StructType(fields)
 
     #d_rdd_with_schema = sqlContext.applySchema(d_rdd,sql_schema)
     df_out=spark.createDataFrame(d_rdd,sql_schema)
+    #df_out=spark.createDataFrame(d_rdd)
 
     df_out.printSchema()
 
     #print(d_rdd.first()[0])
     ##df2.printSchema()
     # Create table, headers for MySQL
-
+    nevent=df_out.count()
     print("{} stations".format(sta.count()))
     #print("Sta box: [{} {} {} {}]".format(
 #    sta.describe(['Latitude']).show()
@@ -114,3 +127,7 @@ if __name__ == "__main__":
     
     endtime=time.time()
     print("It took {:.1f} seconds".format(endtime-starttime))
+
+    f=open("../logs/sparklog2.log","a+")
+    f.write("{:.1f} sec | {} records\n".format(endtime-starttime,nevent))
+    f.close()
