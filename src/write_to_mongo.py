@@ -4,6 +4,7 @@ import re
 import json
 import glob
 import time
+import sys
 
 def parseFileToJson(filepath):
     # read in file
@@ -98,7 +99,7 @@ def parseFileToJson(filepath):
             words=line.split()
             if len(words)==4 and words[1]=='EVENT':
                 # this should be the eventid
-                pickfile['Event_id']=words[3]
+                pickfile['_id']=int(words[3])
 
     #return json.dumps(pickfile)
     return pickfile
@@ -107,6 +108,7 @@ def parseFileToJson(filepath):
 
 
 if __name__ == "__main__":
+    
     filedir='/data/raw'
 #    filename='99123101280c'
 
