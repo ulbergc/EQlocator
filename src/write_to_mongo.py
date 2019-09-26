@@ -48,12 +48,12 @@ def parseFileToJson(filepath):
             # add values to dict
             pickfile['Type']=str(evtype)
             pickfile['RefTime']=str(reftime)
-            pickfile['Latitude']=str(eqlat)
-            pickfile['Longitude']=str(eqlon)
-            pickfile['Depth']=str(eqdep)
-            pickfile['Magnitude']=str(eqmag)
-            pickfile['N_sta']=str(nsta)
-            pickfile['N_phase']=str(npha)
+            pickfile['Latitude']=float(eqlat)
+            pickfile['Longitude']=float(eqlon)
+            pickfile['Depth']=float(eqdep)
+            pickfile['Magnitude']=float(eqmag)
+            pickfile['N_sta']=int(nsta)
+            pickfile['N_phase']=int(npha)
         elif first == '.':
             ltmp=[", ".join(x.split())
                   for x in re.split(r'[()]',line[1:])
@@ -89,9 +89,9 @@ def parseFileToJson(filepath):
                     tmpdict['Phase']=phase
                     tmpdict['First_motion']=first_motion
                     tmpdict['Arrival_time']=reftime0 + arrival_time
-                    tmpdict['Pick_quality']=pick_quality
-                    tmpdict['Uncertainty']=uncertainty
-                    tmpdict['Residual']=residual
+                    tmpdict['Pick_quality']=int(pick_quality)
+                    tmpdict['Uncertainty']=float(uncertainty)
+                    tmpdict['Residual']=float(residual)
                     
                     pickfile['Observations'].append(tmpdict)
         elif first == 'C':
@@ -114,6 +114,7 @@ if __name__ == "__main__":
 
     doc_array=[]
     files=glob.glob(filedir + '/*')
+    cnt=0
     for filepath in files:
         #print(filepath)
 
@@ -122,13 +123,16 @@ if __name__ == "__main__":
     #doc_array=[]
         doc_dict=parseFileToJson(filepath)
         doc_array.append(doc_dict)
+        if cnt>=20:
+            break
+        cnt+=1
 
     endParse=time.time()
     print("Time to parse: {}".format(endParse - start))
 
     client = MongoClient('localhost', 27017)
-    db = client.tmp0
-    collection_name = db.coll0
+    db = client.tmp4
+    collection_name = db.c0
     #collection_name.insert_one(json_string)
     collection_name.insert_many(doc_array)
     client.close()
