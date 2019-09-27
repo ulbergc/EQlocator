@@ -13,7 +13,8 @@ def read_data(spark):
 
     return df
 
-
+# write dataframe to destination 
+# - include options argument/config file to define this instead of in code?
 def write_data(df):
     #data_to_write=df.select("_id","Latitude","Longitude")
     data_to_write=df
@@ -33,6 +34,8 @@ def write_data(df):
 
     # could add .mode("append") before save to append, otherwise creates new
 
+# Locate earthquake
+# - create separate class to do this and allow for different methods?
 def locateEQ(x,sta,boundingBox):
     print("Processing event {evid}, {nobs} observations".format(evid=x._id,nobs=len(x.Observations)))
     #print(type(x))
@@ -46,6 +49,7 @@ def locateEQ(x,sta,boundingBox):
     if obsName in x:
 	obs=x[obsName]
 	print(type(obs))  
+	# test value
 	lattmp=obs[0]["Uncertainty"]
 
 
@@ -58,6 +62,8 @@ if __name__ == "__main__":
 	print("Usage: process_data.py <dbname> <tablename>")
 	sys.exit(-1)
 
+    # Define spark session with read configuration
+    # !!!change this to read from S3
     dbname=sys.argv[1] # small-tmp1; large-tmp0
     collname=sys.argv[2] # small-c0; large-c0
     spark = SparkSession \
@@ -87,15 +93,17 @@ if __name__ == "__main__":
     print('*** Station bounding box= [{:.4f} {:.4f} {:.4f} {:.4f}]'.format(lat_min,lat_max,lon_min,lon_max))
     print('*** lat_min={:.4f}'.format(lat_min))
 
-   # process each record
+    ### Process each record ###
+    # using foreach will not return anything - can edit df or write intermediate results?
     #df.foreach(lambda x: locateEQ(x,'fe'))
     
-    # use map because it will return a transformed rdd
+    # using map because it will return a transformed rdd
     d_rdd=df.rdd.map(lambda x: locateEQ(x,sta,[lat_min,lat_max,lon_min,lon_max]))
     #print(d_rdd.count())
 
     # drop this from memory, don't need it
 #    df.unpersist()
+
     # create schema for transformed rdd
     fields = [StructField("Event_id", IntegerType(), True), 
             StructField("Latitude", FloatType(), True),
@@ -104,6 +112,7 @@ if __name__ == "__main__":
 
 #    d_rdd_with_schema = sqlContext.applySchema(d_rdd,sql_schema)
     df_out=spark.createDataFrame(d_rdd,sql_schema)
+    # This version creates df without defined schema
     #df_out=spark.createDataFrame(d_rdd)
 
     df_out.printSchema()
@@ -112,7 +121,7 @@ if __name__ == "__main__":
 #    df_out=df.select("_id","Latitude","Longitude")
     #print(d_rdd.first()[0])
     ##df2.printSchema()
-    # Create table, headers for MySQL?
+    # Create table, headers for MySQL? Or do this in write_data?
     #?? 
     
     # Write data to MySQL
