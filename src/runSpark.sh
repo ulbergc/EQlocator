@@ -1,9 +1,11 @@
 
-narg=$#
-if [ $narg -lt 1 ]; then
-  echo "Usage: ./runSpark.sh <python_script>"
-  exit
-fi
+#narg=$#
+#if [ $narg -lt 1 ]; then
+#  echo "Usage: ./runSpark.sh <python_script>"
+#  exit
+#fi
+
+prog_name=process_data.py
 
 read_db_name=tmp4
 read_table_name=c0
@@ -17,12 +19,12 @@ MASTER=$(echo "--master spark://$masterDNS:7077")
 #MASTER=
 echo $MASTER
 
-echo "Calling spark-submit $PACKAGE $MASTER $1 $read_db_name $read_table_name"
+echo "Calling spark-submit $PACKAGE $MASTER $prog_name $read_db_name $read_table_name"
 
-spark-submit $PACKAGE $MASTER $1 $read_db_name $read_table_name
+spark-submit $PACKAGE $MASTER $prog_name $read_db_name $read_table_name
 
 endtimeFull=`date`
 endtime=`date +%s`
 runtime=$((endtime-starttime))
 echo "Testing"
-echo "$read_db_name | $read_table_name | $endtimeFull | $runtime | spark-submit $PACKAGE $MASTER $1" >> ../logs/sparktime.log
+echo "$read_db_name | $read_table_name | $endtimeFull | $runtime | spark-submit $PACKAGE $MASTER $prog_name" >> ../logs/sparktime.log
