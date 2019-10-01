@@ -1,5 +1,5 @@
 
-echo "Have you deleted table from MySQL?"
+echo "Type any key to confirm table is dropped from MySQL?"
 read response
 
 # Input values
