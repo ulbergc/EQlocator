@@ -1,6 +1,6 @@
 
 echo "Type any key to confirm table is dropped from MySQL?"
-read response
+#read response
 
 # Input values
 prog_name=process_data_s3.py

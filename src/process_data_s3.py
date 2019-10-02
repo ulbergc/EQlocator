@@ -1,5 +1,7 @@
 from pyspark.sql import SQLContext
 from pyspark.sql.functions import explode
+from pyspark.sql.functions import lit
+from pyspark.sql.functions import countDistinct
 # from pyspark.sql.types import StructField, IntegerType, FloatType, StructType
 import pyspark.sql.types as T
 from pyspark.sql import SparkSession
@@ -10,12 +12,24 @@ import pandas as pd
 #import mysql.connector
 
 
+WRITE_STATION_INFO = False
+WRITE_DB_NAME='final'
+WRITE_TABLE_NAME="table3"
+
+
 def read_data(spark):
-#    path = 's3a://ulberg-insight/testing/multiline/uncomp/small/*.json'
+    path = 's3a://ulberg-insight/testing/multiline/uncomp/small/*.json'
 #    path = 's3a://ulberg-insight/testing/multiline/uncomp/huge/*.json'
     archive_path = 's3a://ulberg-insight/archive'
 #    months = [19800101, 19800201, 19800301, 19800401, 19800501, 19800601]
-    months = [19800101]
+#    months = [19800101]
+    mo = ['{:02d}01'.format(x) for x in range(1,13)]
+    allmo=[]
+    for i in range(5):
+        tmpmo = ['198{}{}'.format(i,x) for x in mo]
+        allmo+=tmpmo
+    #months = ['1980{}'.format(x) for x in mo]
+    months = allmo
     path = ['{p1}/{mo}/{mo}.json' \
         .format(p1=archive_path, mo=month) for month in months]
     df = spark.read.json(path)
@@ -30,7 +44,7 @@ def read_data(spark):
 def read_station(spark):
     sql_context = SQLContext(spark)
     sta = sql_context.read  \
-            .load('s3a://ulberg-insight/info/stations.csv',
+            .load('s3a://ulberg-insight/info/stations_small.csv',
             format='com.databricks.spark.csv')
 #    print("{} stations".format(sta.count()))
 #    sta.printSchema()
@@ -43,14 +57,13 @@ def read_station(spark):
     return sta
 
 
-tmp_table_name="table1"
-delete_table_sql = "DROP TABLE IF EXISTS {};".format(tmp_table_name)
+delete_table_sql = "DROP TABLE IF EXISTS {};".format(WRITE_TABLE_NAME)
 
 
 def check_sql_table():
     mysql_host = "jdbc:mysql://10.0.0.11:3306/"
-    mysql_db = "tmp4"
-    mysql_table = tmp_table_name
+    mysql_db = WRITE_DB_NAME
+    mysql_table = WRITE_TABLE_NAME
     mysql_user = "user"
     mysql_pw = "pw"
     cnx = mysql.connector.connect(
@@ -66,7 +79,7 @@ def check_sql_table():
 
 # write dataframe to destination
 # include options argument/config file to define this instead of in code?
-def write_data(df):
+def write_data(df, db_name=WRITE_DB_NAME, table_name=WRITE_TABLE_NAME):
     # data_to_write=df.select("Event_id","Latitude","Longitude")
     data_to_write = df
 #    print(df.count())
@@ -74,8 +87,10 @@ def write_data(df):
     # check that database is created and table is not
     # define
     mysql_host = "jdbc:mysql://10.0.0.11:3306/"
-    mysql_db = "tmp4"
-    mysql_table = tmp_table_name
+    #mysql_db = WRITE_DB_NAME
+    #mysql_table = WRITE_TABLE_NAME
+    mysql_db = db_name
+    mysql_table = table_name
     mysql_user = "user"
     mysql_pw = "pw"
     data_to_write.write.format("jdbc").options(
@@ -142,6 +157,17 @@ def explode_on_val(df, explode_col='Observations', new_col='obs'):
 def drop_cols(df, columns_to_drop):
     return df.drop(*columns_to_drop)
 #def locate_sta_avg(x):
+
+
+def count_station_obs(df):
+    # this version counts duplicates if a sta had multiple obs for one  event
+#    sta_count = df.groupby('sta').count()
+    # this version does it correctly?
+    sta_count = df.groupby('sta').agg(countDistinct('Event_id'))
+    sta_count = sta_count \
+        .withColumn('count', sta_count['count(DISTINCT Event_id)'])
+    sta_count = sta_count.drop('count(DISTINCT Event_id)')
+    return sta_count
 
 
 def locate_simple(x):
@@ -214,6 +240,9 @@ if __name__ == "__main__":
     # merge data and sta
     df = df.join(sta, 'sta')
 
+    # count number of nan values after merge
+    df.agg(count_not_null('Station_Latitude', True)).show()
+
     # get average values
     df_avg_lat = df.groupBy('Event_id').avg('Station_Latitude')
     df_avg_lon = df.groupBy('Event_id').avg('Station_Longitude')
@@ -230,13 +259,16 @@ if __name__ == "__main__":
     df_avg = df_avg_lat.join(df_avg_lon, 'Event_id')
 #    df_avg.printSchema()
 
+    # add method column
+    df_avg = df_avg.withColumn("Method", lit(1))
+
     # using foreach will not return anything
     # can edit df or write intermediate results?
     # df.foreach(lambda x: locateEQ(x,'fe'))
 
     # using map will return a transformed rdd
     # if you pass sta in as well it will fail: pickling error???
-    d_rdd = df0.rdd.map(lambda x: locate_simple(x))
+#    d_rdd = df0.rdd.map(lambda x: locate_simple(x))
 #    d_rdd = df.rdd \
 #        .map(lambda x: locate_EQ(x, sta_pd))
     # print(d_rdd.count())
@@ -247,11 +279,12 @@ if __name__ == "__main__":
     # create schema for transformed rdd
     fields = [T.StructField("Event_id", T.LongType(), True),
               T.StructField("Latitude", T.FloatType(), True),
-              T.StructField("Longitude", T.FloatType(), True)]
+              T.StructField("Longitude", T.FloatType(), True),
+              T.StructField("Method", T.IntegerType(), True)]
     sql_schema = T.StructType(fields)
 
     # d_rdd_with_schema = sqlContext.applySchema(d_rdd,sql_schema)
-    df_out = spark.createDataFrame(d_rdd, sql_schema)
+#    df_out = spark.createDataFrame(d_rdd, sql_schema)
     # This version creates df without defined schema
     #df_out = spark.createDataFrame(d_rdd)
 
@@ -269,6 +302,14 @@ if __name__ == "__main__":
     df_out.printSchema()
     # Write data to MySQL
     write_data(df_out)
+
+    if WRITE_STATION_INFO:
+        sta_cnt = count_station_obs(df)
+        sta_cnt.printSchema()
+        sta_cnt.show(10)
+        # merge sta_cnt with sta
+        sta_all = sta.join(sta_cnt, 'sta')
+        write_data(sta_all, db_name=WRITE_DB_NAME, table_name='statmp2')
 
     spark.stop()
 
