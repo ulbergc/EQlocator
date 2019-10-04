@@ -3,7 +3,6 @@ from pyspark.sql.functions import explode
 from pyspark.sql.functions import lit
 from pyspark.sql.functions import countDistinct
 from pyspark.sql.functions import udf, pandas_udf, PandasUDFType
-# from pyspark.sql.types import StructField, IntegerType, FloatType, StructType
 import pyspark.sql.types as T
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
@@ -11,7 +10,6 @@ import time
 import sys
 import numpy as np
 import pandas as pd
-#import mysql.connector
 
 
 WRITE_STATION_INFO = False
@@ -92,26 +90,6 @@ def read_station(spark):
     return sta
 
 
-delete_table_sql = "DROP TABLE IF EXISTS {};".format(WRITE_TABLE_NAME)
-
-
-def check_sql_table():
-    mysql_host = "jdbc:mysql://10.0.0.11:3306/"
-    mysql_db = WRITE_DB_NAME
-    mysql_table = WRITE_TABLE_NAME
-    mysql_user = "user"
-    mysql_pw = "pw"
-    cnx = mysql.connector.connect(
-        url=(mysql_host + mysql_db),
-        dbtable=mysql_table,
-        user=mysql_user,
-        password=mysql_pw,
-        driver="com.mysql.cj.jdbc.Driver")
-    cursor = cnx.cursor()
-    # drop the table
-    cursor.execute(delete_table_sql)
-
-
 # write dataframe to destination
 # include options argument/config file to define this instead of in code?
 def write_data(df, db_name=WRITE_DB_NAME, table_name=WRITE_TABLE_NAME):
@@ -153,7 +131,6 @@ def explode_on_val(df, explode_col='Observations', new_col='obs'):
 
 def drop_cols(df, columns_to_drop):
     return df.drop(*columns_to_drop)
-#def locate_sta_avg(x):
 
 
 def count_station_obs(df):
@@ -214,18 +191,9 @@ def locate2(df):
     return df.groupBy('Event_id').apply(eq_wrapper)
 
 
-def locate_simple(x):
-    # default values
-    idtmp = x.Event_id
-    lattmp = float(x.Latitude)
-    lontmp = float(x.Longitude)
-    return (idtmp, lattmp, lontmp, 0)
-
-
-@pandas_udf("Event_id long, Station_Latitude double", PandasUDFType.GROUPED_MAP)
-def test_udf(pdf):
-    tmplat = pdf.Station_Latitude
-    return pdf.assign(Station_Latitude=(tmplat+1))
+@pandas_udf("Event_id long, Longitude double, Latitude double, Method int", PandasUDFType.GROUPED_MAP)
+def eq_wrapper(df):
+    return locate_earthquake(df)
 
 
 # make variables that will be always passed to function
@@ -314,11 +282,6 @@ def locate_earthquake(df, scale=1):
     #print("Best-fit location at ({},{})".format(x_best,y_best))
     #return (ev_id, x_best[0], y_best[0])
     return pd.DataFrame([[ev_id, lon_best, lat_best, 2]], columns=['Event_id', 'Longitude', 'Latitude', 'Method'])
-
-
-@pandas_udf("Event_id long, Longitude double, Latitude double, Method int", PandasUDFType.GROUPED_MAP)
-def eq_wrapper(df):
-    return locate_earthquake(df)
 
 
 #if __name__ == "__main__":
