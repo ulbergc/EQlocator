@@ -13,13 +13,15 @@ read_db_name=tmp4
 read_table_name=c0
 py_args=$( echo "$read_db_name $read_table_name" )
 
-EXTRA_ARGS=$(--conf "spark.dynamicAllocation.enable = true" --conf "spark.dynamicAllocation.executorIdleTimeout = 2m" --conf "spark.dynamicAllocation.minExecutors = 1" --conf "spark.dynamicAllocation.maxExecutors = 2000" --conf "spark.stage.maxConsecutiveAttempts = 10" --conf "spark.memory.offHeap.enable = true" --conf "spark.memory.offHeap.size = 3g" --conf "spark.yarn.executor.memoryOverhead = 0.1 * (spark.executor.memory + spark.memory.offHeap.size)")
+EXTRA_ARGS=$(echo "--conf \"spark.dynamicAllocation.enable=true\" --conf \"spark.dynamicAllocation.executorIdleTimeout=2m\" --conf \"spark.dynamicAllocation.minExecutors=1\" --conf \"spark.dynamicAllocation.maxExecutors=2000\" --conf \"spark.stage.maxConsecutiveAttempts=10\" --conf \"spark.memory.offHeap.enable=true\" --conf \"spark.memory.offHeap.size=3g\" --conf \"spark.yarn.executor.memoryOverhead=0.1*(spark.executor.memory+spark.memory.offHeap.size)\"")
+#echo $EXTRA_ARGS
+#exit
 EXTRA_ARGS=
 
 
 
 starttime=`date +%s`
-SPARK_ARGS=$(echo "--num-executors ${num_executors} --executor-cores ${executor_cores} --executor-memory ${executor_memory}G")
+SPARK_ARGS=$(echo "--num-executors ${num_executors} --executor-cores ${executor_cores} --executor-memory ${executor_memory}G --driver-memory 4G --conf "spark.driver.cores=4"")
 #SPARK_ARGS=$(echo "--executor-memory 5G")
 # could add driver-memory
 PACKAGE=$(echo "--packages com.databricks:spark-csv_2.10:1.2.0,mysql:mysql-connector-java:8.0.17")

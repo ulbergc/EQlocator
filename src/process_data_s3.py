@@ -15,8 +15,8 @@ import pandas as pd
 
 
 WRITE_STATION_INFO = False
-WRITE_DB_NAME='tmp5'
-WRITE_TABLE_NAME='a2'
+WRITE_DB_NAME='final'
+WRITE_TABLE_NAME='table7'
 
 LOCATE_STRUCT_FIELDS = [
         T.StructField("Event_id", T.LongType(), True),
@@ -56,8 +56,8 @@ def read_data(spark):
     archive_path = 's3a://ulberg-insight/archive'
 #    months = [19800101, 19800201, 19800301, 19800401, 19800501, 19800601]
 #    months = [19800101]
-    molimit = 2 # 13 for all, 2 for single
-    yrlimit = 1 # 5 for all, 1 for single
+    molimit = 13 # 13 for all, 2 for single
+    yrlimit = 5 # 5 for all, 1 for single
     mo = ['{:02d}01'.format(x) for x in range(1,molimit)]
     allmo=[]
     for i in range(yrlimit):
@@ -140,45 +140,6 @@ def write_data(df, db_name=WRITE_DB_NAME, table_name=WRITE_TABLE_NAME):
     # could add .mode("append") before save to append, otherwise creates new
 
 
-# Locate earthquake
-# - create separate class to do this and allow for different methods?
-def locate_EQ(x, sta_pd):
-   # print("Processing event {evid}, {nobs} observations".format(
-   #     evid=x.Event_id, nobs=len(x.Observations)))
-    # print(type(x))
-
-    # default values
-    idtmp = x.Event_id
-    lattmp = float(x.Latitude)
-    lontmp = float(x.Longitude)
-
-    all_obs = x['Observations']
-    print(type(all_obs))
-    # test value
-#       lattmp = obs[0]["Uncertainty"]
-    # loop over each observation, only include if it is a P phase
-    all_sta = []
-    all_time = []
-    for obs in all_obs:
-        if obs['Type'] == 'Phase' and obs['Phase'] == 'P':
-            sta_name = obs['Station']
-            all_sta.append(sta_name)
-            all_time.append(obs['Arrival_time'])
-
-    tuple_list = list(zip(all_sta, all_time))
-    df_obs = pd.DataFrame(tuple_list, columns=['Station', 'Arrival_time'])
-
-    # merge station and time observations
-    sta2 = pd.merge(df_obs, sta, how='inner', on=['Station'])
-    #s1 = pd.merge(df1, df2, how='inner', on=['user_id'])
-    #s1 = pd.merge(dfA, dfB, how='inner', on=['S', 'T'])
-
-    #lattmp = sta2['Latitude'].mean()
-    #lontmp = sta2['Longitude'].mean()
-
-    #return Row(Event_id=idtmp, Latitude=lattmp, Longitude=lontmp)
-    return Row(idtmp, lattmp, lontmp)
-
 def test_method(df1):
     columns_to_drop = ['N_sta']
     df2 = df1.drop(*columns_to_drop)
@@ -206,7 +167,31 @@ def count_station_obs(df):
     return sta_count
 
 
+def locate0(df):
+    df_new = df.select("Event_id","Latitude","Longitude")
+    df_new = df_new.withColumn("Method", lit(0))
+    return df_new
+
+
+@pandas_udf("Event_id long, Longitude double, Latitude double, Method int", PandasUDFType.GROUPED_MAP)
+def locate1_wrapper(df):
+    return locate1_pandas(df)
+
+
 def locate1(df):
+    return locate1_spark(df)
+    #return df.groupBy('Event_id').apply(locate1_wrapper)
+
+
+def locate1_pandas(df):
+    lat_avg = df['Station_Latitude'].mean()
+    lon_avg = df['Station_Longitude'].mean()
+    ev_id = df['Event_id'].iloc[0]
+    return pd.DataFrame([[ev_id, lon_avg, lat_avg, 1]], columns=['Event_id', 'Longitude', 'Latitude', 'Method'])
+
+
+# this one just returns the average of stations with observations
+def locate1_spark(df):
     df_avg_lat = df.groupBy('Event_id').avg('Station_Latitude')
     df_avg_lon = df.groupBy('Event_id').avg('Station_Longitude')
     # rename columns
@@ -224,9 +209,9 @@ def locate1(df):
 
 
 def locate2(df):
-    df_loc = df.select(LOCATE_FIELDS)
+    #df_loc = df.select(LOCATE_FIELDS)
     #df_new_loc = df_loc.groupBy('Event_id').apply(eq_wrapper)
-    return df_loc.groupBy('Event_id').apply(eq_wrapper)
+    return df.groupBy('Event_id').apply(eq_wrapper)
 
 
 def locate_simple(x):
@@ -250,9 +235,17 @@ xx,yy = np.meshgrid(xgrd, ygrd)
 xf = np.ravel(xx)
 yf = np.ravel(yy)
 
+xf_bc = spark.sparkContext.broadcast(xf)
+yf_bc = spark.sparkContext.broadcast(yf)
+
 #@pandas_udf(LOCATE_OUTPUT, PandasUDFType.GROUPED_MAP)
 #@pandas_udf("Event_id long, Longitude double, Latitude double", PandasUDFType.GROUPED_MAP)
-def locate_earthquake(df, xflat=xf, yflat=yf, scale=1):
+#def locate_earthquake(df, xflat=xf_bc, yflat=yf_bc, scale=1):
+def locate_earthquake(df, scale=1):
+#def locate_earthquake(df, scale=1):
+    xflat=xf_bc.value
+    yflat=yf_bc.value
+    #print(type(xflat))
     ev_id = df.iloc[0]['Event_id']
     # drop rows with nan
     #print('Event {}'.format(ev_id))
@@ -357,33 +350,18 @@ def main():
     #df_original = df
     #print("DF has {} records".format(df.count()))
 
-    # verify id column type, they are too big for Int
-    df = df0.withColumn("Event_id", df0["Event_id"].cast(T.LongType()))
-
     # read station information from S3
     sta = read_station(spark)
     sta.printSchema()
     # keep this information cached since it is small and will be used a lot
     sta.cache()
 
-    # convert sta to rdd so it can be passed to locate_eq
-#    sta_pd = sta.toPandas()
-#    print(type(sta_pd))
-
-    # this way doesn't work
-    #sta_rdd2 = sta.rdd.map(list)
-    #print(type(sta_rdd2))
-
     # Process each record
-    # test passing to method
-#    df = test_method(df)
     # explode observations in df to make them easier to work with
-    df = explode_on_val(df, explode_col='Observations', new_col='obs')
-#    df.printSchema()
+    df = explode_on_val(df0, explode_col='Observations', new_col='obs')
 
     # drop useless columns
     df = drop_cols(df, ['Observations', 'N_sta', 'N_phase'])
-#    df.printSchema()
 
     # pull additional info from obs
     df = df.withColumn("sta", df.obs.Station)
@@ -399,104 +377,17 @@ def main():
 
     print(df.schema)
 
+    df = df.select(LOCATE_FIELDS)
+
+    print("Partitions in df = {}".format(df.rdd.getNumPartitions()))
     # CHOOSE LOCATION METHOD (2 = grid, 1=avg)
-    df_out = locate2(df)
+    #df_out = locate2(df)
     #df_out = locate1(df)
-
-
-    # test user defined function
-#    df.show(1)
-#    col_keep = ['Event_id', 'Station_Latitude']
-#    df_small = df.select(col_keep)
-#    #df_small = df.select("Event_id", "Station_Latitude")
-#    sample = df_small.filter(df_small.Event_id == 10265028).toPandas()
-#    print("sample")
-#    print(sample.head())
-#
-#    print(df_small.schema)
-#
-#    sample_new = test_udf.func(sample)
-#    print("sample_new")
-#    print(sample_new.head())
-
-    # do the location
-#    df_loc = df.select(LOCATE_FIELDS)
-#    sample2 = df_loc.filter(df_loc.Event_id == 10265028).toPandas()
-#    print("sample2")
-#    print(sample2.head())
-#    df_loc.printSchema()
-
-    #sample2_new = locate_earthquake.func(sample2)
-#    sample2_new = eq_wrapper.func(sample2)
-#    print("sample2_new type: ")
-#    print(type(sample2_new))
-#    sample2_new.printSchema()
-#    df_loc.show(3)
-#    df_new_loc = df_loc.groupBy('Event_id').apply(eq_wrapper)
-#    print("df_new_loc type:")
-#    print(type(df_new_loc))
-#    df_new_loc.printSchema()
-#    df_new_loc.show(3)
-    #df_new_loc.explain(True)
-    # count number of nan values after merge
-    #df.agg(count_not_null('Station_Latitude', True)).show()
-
-    # get average values
-#    df_avg_lat = df.groupBy('Event_id').avg('Station_Latitude')
-#    df_avg_lon = df.groupBy('Event_id').avg('Station_Longitude')
-
-    # rename columns
-#    df_avg_lat = df_avg_lat.withColumn("Latitude", df_avg_lat["avg(Station_Latitude)"])
-#    df_avg_lon = df_avg_lon.withColumn("Longitude", df_avg_lon["avg(Station_Longitude)"])
-
-    # drop old columns
-#    df_avg_lat = drop_cols(df_avg_lat, ['avg(Station_Latitude)'])
-#    df_avg_lon = drop_cols(df_avg_lon, ['avg(Station_Longitude)'])
-
-    # merge average values
-#    df_avg = df_avg_lat.join(df_avg_lon, 'Event_id')
-#    df_avg.printSchema()
-
-    # add method column
-#    df_avg = df_avg.withColumn("Method", lit(1))
-
-    # using foreach will not return anything
-    # can edit df or write intermediate results?
-    # df.foreach(lambda x: locateEQ(x,'fe'))
-
-    # using map will return a transformed rdd
-    # if you pass sta in as well it will fail: pickling error???
-#    d_rdd = df0.rdd.map(lambda x: locate_simple(x))
-#    d_rdd = df.rdd \
-#        .map(lambda x: locate_EQ(x, sta_pd))
-    # print(d_rdd.count())
-
-    # drop this from memory, don't need it
-    # df.unpersist()
-
-    # create schema for transformed rdd
-#    fields = [T.StructField("Event_id", T.LongType(), True),
-#              T.StructField("Latitude", T.FloatType(), True),
-#              T.StructField("Longitude", T.FloatType(), True),
-#              T.StructField("Method", T.IntegerType(), True)]
-#    sql_schema = T.StructType(fields)
-
-    # d_rdd_with_schema = sqlContext.applySchema(d_rdd,sql_schema)
-#    df_out = spark.createDataFrame(d_rdd, sql_schema)
-    # This version creates df without defined schema
-    #df_out = spark.createDataFrame(d_rdd)
+    df_out = locate0(df0)
+    print("Partitions in df_out = {}".format(df_out.rdd.getNumPartitions()))
 
     # simple df_out for testing
 #    df_out=df.select("Event_id","Latitude","Longitude")
-
-    # print(d_rdd.first()[0])
-    # df2.printSchema()
-    # Create table, headers for MySQL? Or do this in write_data?
-    # ??
-
-    # Use the average station location as the earthquake's location
-#    df_out = df_avg
-    #df_out = df_new_loc
 
 #    df_out.printSchema()
     # Write data to MySQL
