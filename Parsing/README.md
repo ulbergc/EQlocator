@@ -11,6 +11,6 @@ Use these codes to parse earthquake data from original format and augment the da
 
 3. Move files to AWS S3 bucket by navigating to the directory containing them ($bigdir/big in run_augment.sh) and calling:
 
-   `aws s3 sync . s3://<bucket_name>/<path_to_files>`
+   `aws s3 sync . s3://<bucket_name>/<path_to_files_in_bucket>`
    
    This will require the AWS command line interface [tool](https://aws.amazon.com/cli/)
