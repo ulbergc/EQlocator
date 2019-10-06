@@ -9,10 +9,12 @@ def read_data(spark):
     Read earthquake arrival time data from S3
     Return as Spark DataFrame
     '''
+    # path_single is for testing a single 'day' ~37k events
+    path_single = 's3a://ulberg-insight/test1set/19800201.json'
     archive_path = 's3a://ulberg-insight/archive'
 
-    molimit = 2  # 13 for all, 2 for single
-    yrlimit = 1  # 5 for all, 1 for single
+    molimit = 2  # 13 for all, 2 for single month
+    yrlimit = 1  # 5 for all, 1 for single year
     mo = ['{:02d}01'.format(x) for x in range(1, molimit)]
 
     months = []

@@ -27,7 +27,7 @@ spark = SparkSession \
 
 spark.conf.set('spark.sql.execution.arrow.enabled', 'true')
 
-# make grid search variables that will be always passed to function
+# make grid search variables that will be always passed to locate2 function
 xgrd = np.arange(-10, 11)
 ygrd = np.arange(-10, 11)
 xx, yy = np.meshgrid(xgrd, ygrd)
@@ -75,7 +75,6 @@ def locate1_pandas(df):
             columns=['Event_id', 'Longitude', 'Latitude', 'Method'])
 
 
-# this one just returns the average of stations with observations
 def locate1_spark(df):
     # Get average latitude
     df_avg_lat = df.groupBy('Event_id').avg('Station_Latitude')
@@ -209,7 +208,7 @@ def main(db_write_name, table_write_name, METHOD):
         sta_count.show(10)
         # merge sta_cnt with sta
         sta_all = sta.join(sta_count, 'sta')
-        write_data(sta_all, db_name='tmp5', table_name='statmp2')
+        write_data(sta_all, db_name='tmp5', table_name='sta_month')
 
     spark.stop()
 
