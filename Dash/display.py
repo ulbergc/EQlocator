@@ -1,7 +1,7 @@
 '''
 Create a website to display earthquake location information.
 Calls database with queries through query_mysql.py
-Additionally functions can be found in display_tools.py
+Additional functions can be found in display_tools.py
 
 modeled after code from Andrew Bierbaum:
     https://github.com/andrewbierbaum/InsightProject
