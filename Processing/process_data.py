@@ -1,3 +1,20 @@
+'''
+This will read seismic data from S3, process it in Spark to obtain new
+earthquake locations, and write new locations to a MySQL database.
+Required arguments:
+    dbname: Name of the database to write to
+    tablename: Name of the table to write to
+    method: Location method to use (0, 1, 2 at the moment)
+
+Usually called with  ./run_process.sh <dbname> <tablename> <method>
+Uses tools.py for additional spark functionality
+
+Filename: process_data.py
+Cohort: Insight Data Engineering SEA '19C
+Name: Carl Ulberg
+'''
+
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 from pyspark.sql.functions import lit

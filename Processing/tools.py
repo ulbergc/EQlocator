@@ -1,3 +1,12 @@
+'''
+Helper tools for process_data.py
+Read and write datasets with Spark
+
+Filename: tools.py
+Cohort: Insight Data Engineering SEA '19C
+Name: Carl Ulberg
+'''
+
 import pyspark.sql.types as T
 from pyspark.sql import SQLContext
 from pyspark.sql.functions import countDistinct
