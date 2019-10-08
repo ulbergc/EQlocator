@@ -1,12 +1,12 @@
 # EQlocator
 
-*This is a project completed in three week during the [Insight Data Engineering](https://www.insightdataengineering.com/) program in Seattle, Fall 2019. Insight helps recent grads learn the latest big data technologies by building a platform to handle large datasets.*  
+*This is a project completed in three weeks during the [Insight Data Engineering](https://www.insightdataengineering.com/) program in Seattle, Fall 2019. Insight helps recent grads learn the latest big data technologies by building a platform to handle large datasets.*  
 
 [Project slides](https://docs.google.com/presentation/d/1hOo2tHgesBtCbYT8NyO3vpen3G8YBJjjNW8kUfW1218/edit#slide=id.g64690a08f3_0_5)  
 [Dash frontend](http://34.217.131.117:8050)
 
 ## Project Idea/Business Value
-When earthquakes occur their locations are calculated very quickly and crudely in order to issue real-time alerts. More accurate locations can be determined afterwards and used to infer fault locations and make hazard assessments. But how can new location techniques be tested efficiently on a large, historical dataset? I have provided a pipeline to do this using distributed processing, which will allow researchers and policy makers to make more informed hazard determinations.
+When earthquakes occur their locations are calculated very quickly in order to issue real-time alerts. More accurate locations can be determined afterwards and used to infer fault locations and make hazard assessments. But how can new location techniques be tested efficiently on a large, historical dataset? I have provided a pipeline to do this using distributed processing, which will allow researchers and policy makers to make more informed hazard determinations.
 
 ## Data Source
 I used earthquake arrival time data from the Pacific Northwest Seismic Network, [PNSN](https://pnsn.org/). In order to test Spark's functionality I wrote a script to augment the dataset to an arbitrarily large size, in this case ~80 GB.
