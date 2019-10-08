@@ -21,7 +21,7 @@ Dash: Summary results can be accessed and explored by the user through a Dash fr
 **Challenge #1: Implementing Pandas user-defined functions (UDFs)**
 1. Pandas UDFs allow the user to perform transformations on the dataset using Pandas dataframes, which will be returned into the overall Spark dataframes. 
 2. In my case I split up the earthquake arrival times for each earthquake and operate on them separately with `df.groupby('Event_id').apply(<pandas_function>)`. `pandas_function` is a separate function that converts that portion of the Spark dataframe into a pandas dataframe using [Apache Arrow](https://arrow.apache.org/docs/python/), operates on it, then returns a new dataframe.
-3. This would allow researchers to write and test code using only python/pandas, without worrying about Spark. The tradeoff is that this could take more time than a function implemented entirely within Spark.
+3. This would allow researchers to write and test code using only python/pandas, without worrying about Spark. The tradeoff is that this could take more time than a function implemented entirely within Spark. Testing a naive location algorithm (average recording station location) on a smaller dataset showed ~4x faster performance with Spark native functions than with a Pandas UDF.
 
 **Challenge #2: Spark tuning**
 1. Spark uses multiple nodes to perform distributed computation. The number of nodes, the number of executors, the number of cores per executor, and the RAM per executor, can all be adjusted, among many other parameters.
